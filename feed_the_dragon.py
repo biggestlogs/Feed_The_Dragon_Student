@@ -3,60 +3,55 @@ import pygame, random
 # Initialize pygame
 pygame.init()
 
+
 def make_text(font_object, text, color, background_color):
-    # TODO: Use the given font_object to create and return a rendered text Surface.
-    #       - Use font_object.render(...)
-    #       - Make sure antialias is set to True
-    #       - Use the given text, color, and background_color
-    pass # TODO: remove this when finished
+    return font_object.render(text, True, color, background_color)
 
 
 def blit(surface, item, rect):
-    # TODO: Draw (blit) the given item (Surface) onto the given surface at the given rect.
-    #       - Use the surface.blit(...) method
-    pass # TODO: remove this when finished
+    surface.blit(item, rect)
 
 
 def fill(surface, color):
-    # TODO: Fill the entire surface with the given color using surface.fill(...)
-    pass # TODO: remove this when finished
+    surface.fill(color)
 
 
 def update_display():
-    # TODO: Update the entire display so that any drawing shows up on the screen.
-    #       - Use pygame.display.update()
-    pass # TODO: remove this when finished
+    pygame.display.update()
 
 
 # Set display surface
 # TODO:
-#   - Create WINDOW_WIDTH and WINDOW_HEIGHT constants (e.g., 1000 x 400).
-#   - Use pygame.display.set_mode to create the display_surface with that size.
-#   - Set a window caption like "Feed the Dragon" using pygame.display.set_caption(...).
+WINDOW_WIDTH = 1000
+WINDOW_HEIGHT = 400
+pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+pygame.display.set_caption("Feed the Dragon")
 
 
 # Set FPS and clock
 # TODO:
-#   - Create an FPS constant (e.g., 60).
-#   - Create a clock object using pygame.time.Clock() for controlling the frame rate.
+FPS = 60
+clock = pygame.time.Clock()
 
 
 # Set game values
-# TODO:
-#   - Create constants for:
-#       * PLAYER_STARTING_LIVES (e.g., 5)
-#       * PLAYER_VELOCITY (how fast the dragon moves up/down) (e.g., 10)
-#       * COIN_STARTING_VELOCITY (how fast the coin moves at the start) (e.g, 10)
-#       * COIN_ACCELERATION (how much faster the coin gets after each catch) (e.g., 0.5)
-#       * BUFFER_DISTANCE (how far off-screen to respawn the coin on the right) (e.g, 100)
-#   - Create variables for:
-#       * score (starting at 0)
-#       * player_lives (start at PLAYER_STARTING_LIVES)
-#       * coin_velocity (start at COIN_STARTING_VELOCITY)
+PLAYER_STARTING_LIVES = 5
+PLAYER_VELOCITY = 10
+COIN_STARTING_VELOCITY = 10
+COIN_ACCELERATION = 0.5
+BUFFER_DISTANCE = 100
+
+score = 0
+player_lives = PLAYER_STARTING_LIVES
+coin_velocity = COIN_STARTING_VELOCITY
 
 
 # Set colors
 # TODO:
+GREEN = (0, 255, 0)
+DARKGREEN = (10, 50, 10)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 #   - Define color constants using RGB tuples, such as:
 #       * GREEN
 #       * DARKGREEN:  RGB value of 10, 50, 10
@@ -66,19 +61,22 @@ def update_display():
 
 # Set fonts
 # TODO:
-#   - Create a font object using pygame.font.Font(...)
-#   - Use the provided font file from the assets folder (e.g., "assets/AttackGraffiti.ttf")
-#   - Choose a font size (e.g., 32)
+font = pygame.font.Font('assets/AttackGraffiti.ttf', 32)
 
 
 # Set text
-# TODO:
-#   - Use your make_text function (or font.render directly) to create:
-#       * score_text showing "Score: " + current score, with green color, dark green background color
-#       * title_text showing "Feed the Dragon", with green color, white background color
-#       * lives_text showing "Lives: " + current lives, with green color, and dark green background color
-#   - Get rects for each text surface using .get_rect()
-#   - Position:
+title_text=make_text(font,'feed the dragon' , GREEN, DARKGREEN)
+lives_text=make_text(font, f'Lives: {player_lives}' , GREEN, DARKGREEN)
+score_text=make_text(font, f'Score: {score}', GREEN, DARKGREEN)
+
+title_rect = title_text.get_rect()
+score_rect = score_text.get_rect()
+lives_rect = lives_text.get_rect()
+
+score_rect.topleft = (10,10)
+title_rect.midtop = 50
+lives_rect.topleft = (WINDOW_WIDTH - 10.10)
+
 #       * score_rect at the top-left (e.g., (10, 10))
 #       * title_rect centered horizontally at the top
 #       * lives_rect at the top-right (e.g., (WINDOW_WIDTH - 10, 10))
@@ -86,6 +84,9 @@ def update_display():
 
 # Set sounds and music
 # TODO:
+coin_catch_sound=pygame.mixer.Sound('assets/coin_catch.wav')
+coin_miss_sound=pygame.mixer.Sound('assets/coin_miss.wav')
+pygame.mixer.music.load('assets/ftd_background_music.wav')
 #   - Load sound effects for:
 #       * catching a coin (e.g., "assets/coin_sound.wav")
 #       * missing a coin (e.g., "assets/miss_sound.wav")
@@ -95,45 +96,53 @@ def update_display():
 
 # Set images
 # TODO:
-#   - Load the player image (dragon) from "assets/dragon_right.png" using pygame.image.load(...)
-#   - Get its rect with .get_rect() and:
-#       * place it near the left side of the screen
-#       * center it vertically in the window
-#   - Load the coin image from "assets/coin.png"
-#   - Get its rect and:
-#       * start it off to the right of the window by BUFFER_DISTANCE
-#       * give it a random y-position somewhere between a top margin (like 64) and near the bottom
+dragon_sprite = pygame.image.load('assets/dragon_right.png')
+dragon_sprite_rect = dragon_sprite.get_rect()
+dragon_sprite_rect.left = 32
+dragon_sprite_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
+
+coin_sprite = pygame.image.load('assets/coin.png')
+coin_sprite_rect = coin_sprite.get_rect()
+coin_sprite_rect.right = WINDOW_WIDTH//BUFFER_DISTANCE
+coin_sprite_rect.y = random.randint(64, WINDOW_HEIGHT - 32)
+
 
 
 # The main game loop
 # TODO:
-#   - Play the background music in a loop using pygame.mixer.music.play(...)
-#   - Create a variable named running and set it to True; this will control the main while loop.
+pygame.mixer.music.play('assets/ftd_background_music.wav')
+running = True
 
 
 def tick():
-    # TODO:
-    #   - Use the clock object to pause just enough so the game runs at FPS frames per second.
-    #   - Call clock.tick(FPS)
-    pass # TODO: remove this when finished
+    clock.tick(FPS)
+
 
 
 def is_still_running():
+    events = pygame.event.get()
+    if pygame.QUIT in events:
+        running = False
+
     # TODO:
     #   - Get the pygame event list with pygame.event.get()
     #   - If you see an event of type pygame.QUIT, set running to False
     #     so the main loop will end and the game can quit.
-    pass # TODO: remove this when finished
+      # TODO: remove this when finished
 
 
 def move_player():
+    pygame.key.get_pressed()
+    if pygame.key.get_pressed()[pygame.K_UP]:
+
+
     # TODO:
     #   - Get the current state of the keyboard using pygame.key.get_pressed()
     #   - If the up arrow is pressed and the player is not above a top limit (e.g., y > 64),
     #       move the player up by PLAYER_VELOCITY.
     #   - If the down arrow is pressed and the player is not below the bottom of the window,
     #       move the player down by PLAYER_VELOCITY.
-    pass # TODO: remove this when finished
+    pass  # TODO: remove this when finished
 
 
 def handle_coin():
@@ -145,7 +154,7 @@ def handle_coin():
     #       * Reset the coin's position:
     #           - x: WINDOW_WIDTH + BUFFER_DISTANCE
     #           - y: a random integer between a top margin (e.g., 64) and near the bottom edge.
-    pass # TODO: remove this when finished
+    pass  # TODO: remove this when finished
 
 
 def handle_collisions():
@@ -158,7 +167,7 @@ def handle_collisions():
     #       * Reset the coin's position:
     #           - x: WINDOW_WIDTH + BUFFER_DISTANCE
     #           - y: random integer between the same top and bottom margins
-    pass # TODO: remove this when finished
+    pass  # TODO: remove this when finished
 
 
 def update_hud():
@@ -166,7 +175,7 @@ def update_hud():
     #   - Re-create score_text and lives_text each frame using make_text(...),
     #     so they show the updated score and lives values.
     #   - Remember to use the same font and colors (GREEN and DARKGREEN).
-    pass # TODO: remove this when finished
+    pass  # TODO: remove this when finished
 
 
 def game_over_check():
@@ -186,7 +195,7 @@ def game_over_check():
     #                   · Exit the pause loop (resume game)
     #               + If the player clicks the window close button (QUIT):
     #                   · Set running to False and exit the pause loop so the game can end.
-    pass # TODO: remove this when finished
+    pass  # TODO: remove this when finished
 
 
 def update_screen():
